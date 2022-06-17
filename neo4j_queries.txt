@@ -1,0 +1,18 @@
+MATCH (e:Event)-[le:LOCATED_IN]->(n:Neighborhood)<-[lr:LOCATED_IN]-(r:Restaurant) 
+WITH point({x: e.lat, y: e.lon, crs: 'cartesian'}) AS p1, point({x: r.lat, y: r.lon, crs: 'cartesian'}) AS p2, e, r
+WITH e.name as event, r.name  as restos, point.distance(p1,p2) AS dist ORDER BY  dist ASC
+WITH event, collect(restos)[0] as closest_restaurant, collect(dist)[0] as closest_distance
+RETURN DISTINCT event, closest_restaurant, closest_distance
+
+MATCH (e1:Event)-->(n:Neighborhood)<--(e2:Event)
+WHERE e1.address="Av Diagonal" and e1.address=e2.address and datetime({date:e1.date})=datetime({date:e2.date}) and e1<e2
+RETURN DISTINCT e1.name, e2.name
+
+MATCH (e:Event)-[le:LOCATED_IN]->(n:Neighborhood)
+WITH  n.neighborhood as nbh, e.date as date, count(*) as nb
+RETURN nbh, date, nb
+ORDER BY nb DESC
+
+MATCH (e1:Event)-->(n:Neighborhood)<--(e2:Event)
+WHERE datetime({date:e1.date})=datetime("2022-03-28") AND datetime({date:e2.date})=datetime("2022-03-29")
+RETURN e1.name, e2.name, n.neighborhood
